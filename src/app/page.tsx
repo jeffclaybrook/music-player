@@ -122,7 +122,7 @@ export default function Home() {
         {song.artist}
        </h3>
       </div>
-      <button className="text-slate-50 p-2 rounded-full transition cursor-pointer">
+      <button aria-label="More" className="text-slate-50 p-2 rounded-full transition cursor-pointer">
        <More />
       </button>
      </li>
