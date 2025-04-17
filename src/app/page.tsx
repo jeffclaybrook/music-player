@@ -1,19 +1,37 @@
 "use client"
 
-import { ChangeEvent, useEffect, useRef, useState } from "react"
+import { MouseEvent, useEffect, useRef, useState } from "react"
 import { clsx } from "clsx"
+import { motion } from "framer-motion"
 import { songs } from "@/lib/data"
 import { Collapse, More, Next, Pause, PauseCircle, Play, PlayCircle, Previous, Share } from "@/components/icons"
 import Image from "next/image"
 
+const containerVariants = {
+ hidden: {
+  opacity: 0,
+  y: 20
+ },
+ visible: {
+  opacity: 1,
+  y: 0,
+  transition: {
+   duration: 1,
+   ease: "easeInOut"
+  }
+ }
+}
+
 export default function Home() {
  const [currentSongIndex, setCurrentSongIndex] = useState<number>(0)
  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+ const [isSeeking, setIsSeeking] = useState<boolean>(false)
  const [expanded, setExpanded] = useState<boolean>(false)
  const [currentTime, setCurrentTime] = useState<number>(0)
  const [duration, setDuration] = useState<number>(0)
 
  const audioRef = useRef<HTMLAudioElement | null>(null)
+ const seekBarRef = useRef<HTMLDivElement | null>(null)
 
  const currentSong = songs[currentSongIndex]
 
@@ -24,6 +42,28 @@ export default function Home() {
    if (isPlaying) audioRef.current.play()
   }
  }, [currentSongIndex])
+
+ useEffect(() => {
+  const audio = audioRef.current
+
+  if (!audio) return
+
+  const updateTime = () => {
+   if (!isSeeking) setCurrentTime(audio.currentTime)
+  }
+
+  const setAudioDuration = () => {
+   setDuration(audio.duration || 0)
+  }
+
+  audio.addEventListener("timeupdate", updateTime)
+  audio.addEventListener("loadedmetadata", setAudioDuration)
+
+  return () => {
+   audio.removeEventListener("timeupdate", updateTime)
+   audio.removeEventListener("loadedmetadata", setAudioDuration)
+  }
+ }, [isSeeking])
 
  useEffect(() => {
   if (expanded) {
@@ -67,12 +107,20 @@ export default function Home() {
   }
  }
 
- const handleSeek = (e: ChangeEvent<HTMLInputElement>) => {
-  const newTime = parseFloat(e.target.value)
-  if (audioRef.current) {
-   audioRef.current.currentTime = newTime
-   setCurrentTime(newTime)
-  }
+ const handleSeek = (e: MouseEvent<HTMLDivElement>) => {
+  const bar = seekBarRef.current
+  const audio = audioRef.current
+
+  if (!bar || !audio) return
+
+  const rect = bar.getBoundingClientRect()
+  const offsetX = e.clientX - rect.left
+  const percent = Math.min(Math.max(offsetX / rect.width, 0), 1)
+
+  const newTime = percent * duration
+
+  setCurrentTime(newTime)
+  audio.currentTime = newTime
  }
 
  const shareApp = () => {
@@ -92,7 +140,12 @@ export default function Home() {
 
  return (
   <main className="min-h-screen flex flex-col">
-   <ul className="flex-1 overflow-y-auto py-1 pb-20">
+   <motion.ul
+    initial="hidden"
+    animate="visible"
+    variants={containerVariants}
+    className="flex-1 overflow-y-auto py-1 pb-20"
+   >
     {songs.map((song, i) => (
      <li
       key={song.id}
@@ -127,7 +180,7 @@ export default function Home() {
       </button>
      </li>
     ))}
-   </ul>
+   </motion.ul>
    <div
     style={{ backgroundImage: `url(${currentSong.image})`, backgroundSize: "cover", backgroundPosition: "center" }}
     className={clsx(
@@ -154,18 +207,29 @@ export default function Home() {
        />
        <div className="flex flex-col">
         <h1 className="text-slate-50 font-medium text-xl text-start line-clamp-1">{currentSong.title}</h1>
-        <h2 className="text-slate-200 text-lg line-clamp-1">{currentSong.artist}</h2>
+        <h2 className="text-slate-50/60 text-lg line-clamp-1">{currentSong.artist}</h2>
        </div>
-       <div className="flex flex-col w-full">
-        <input
-         type="range"
-         min="0"
-         max={duration}
-         step="0.1"
-         value={currentTime}
-         onChange={handleSeek}
-         className="w-full accent-white"
-        />
+       <div className="flex flex-col gap-2 w-full">
+        <div
+         ref={seekBarRef}
+         className="relative h-1 bg-white/15 rounded-full cursor-pointer"
+         onMouseDown={(e) => {
+          setIsSeeking(true)
+          handleSeek(e)
+         }}
+         onMouseMove={(e) => {
+          if (isSeeking) handleSeek(e)
+         }}
+        onMouseUp={() => {
+         setIsSeeking(false)
+        }}
+        onMouseLeave={() => {
+         if (isSeeking) setIsSeeking(false)
+        }}
+        >
+         <div className="absolute top-0 left-0 h-full bg-slate-50 rounded-full" style={{ width: `${(currentTime / duration) * 100 || 0}%` }} />
+         <div className="absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-slate-50 rounded-full shadow-md" style={{ left: `calc(${(currentTime / duration) * 100 || 0}% - 0.5rem)` }} />
+        </div>
         <div className="flex items-center justify-between">
          <span className="text-slate-50 text-sm">{formatTime(currentTime)}</span>
          <span className="text-slate-50 text-sm">{formatTime(duration)}</span>
