@@ -1,103 +1,253 @@
-import Image from "next/image";
+"use client"
+
+import { ChangeEvent, useEffect, useRef, useState } from "react"
+import { clsx } from "clsx"
+import { songs } from "@/lib/data"
+import { Collapse, More, Next, Pause, PauseCircle, Play, PlayCircle, Previous, Share } from "@/components/icons"
+import Image from "next/image"
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+ const [currentSongIndex, setCurrentSongIndex] = useState<number>(0)
+ const [isPlaying, setIsPlaying] = useState<boolean>(false)
+ const [expanded, setExpanded] = useState<boolean>(false)
+ const [currentTime, setCurrentTime] = useState<number>(0)
+ const [duration, setDuration] = useState<number>(0)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+ const audioRef = useRef<HTMLAudioElement | null>(null)
+
+ const currentSong = songs[currentSongIndex]
+
+ useEffect(() => {
+  if (audioRef.current) {
+   audioRef.current.pause()
+   audioRef.current.load()
+   if (isPlaying) audioRef.current.play()
+  }
+ }, [currentSongIndex])
+
+ useEffect(() => {
+  if (expanded) {
+   document.body.classList.add("overflow-hidden")
+  } else {
+   document.body.classList.remove("overflow-hidden")
+  }
+ }, [expanded])
+
+ const togglePlay = () => {
+  if (audioRef.current) {
+   if (audioRef.current.paused) {
+    audioRef.current.play()
+    setIsPlaying(true)
+   } else {
+    audioRef.current.pause()
+    setIsPlaying(false)
+   }
+  }
+ }
+
+ const skipNext = () => {
+  setCurrentSongIndex((i) => (i + 1) % songs.length)
+  setIsPlaying(true)
+ }
+
+ const skipPrev = () => {
+  setCurrentSongIndex((i) => (i - 1 + songs.length) % songs.length)
+  setIsPlaying(true)
+ }
+
+ const handleTimeUpdate = () => {
+  if (audioRef.current) {
+   setCurrentTime(audioRef.current.currentTime)
+  }
+ }
+
+ const handleLoadedMetadata = () => {
+  if (audioRef.current) {
+   setDuration(audioRef.current.duration)
+  }
+ }
+
+ const handleSeek = (e: ChangeEvent<HTMLInputElement>) => {
+  const newTime = parseFloat(e.target.value)
+  if (audioRef.current) {
+   audioRef.current.currentTime = newTime
+   setCurrentTime(newTime)
+  }
+ }
+
+ const shareApp = () => {
+  navigator.clipboard.writeText(window.location.href)
+  alert("URL copied to clipboard")
+ }
+
+ const formatTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60)
+   .toString()
+   .padStart(1, "0")
+  const secs = Math.floor(seconds % 60)
+   .toString()
+   .padStart(2, "0")
+  return `${mins}:${secs}`
+ }
+
+ return (
+  <main className="min-h-screen flex flex-col">
+   <ul className="flex-1 overflow-y-auto py-1 pb-20">
+    {songs.map((song, i) => (
+     <li
+      key={song.id}
+      onClick={() => {
+       setCurrentSongIndex(i)
+       setIsPlaying(true)
+      }}
+      className="flex items-center gap-4 cursor-pointer p-1.5 hover:bg-slate-800"
+     >
+      <Image
+       src={song.image}
+       alt={song.title}
+       width={55}
+       height={55}
+       className="rounded"
+      />
+      <div className="flex flex-col flex-1">
+       <h2
+        className={clsx(
+         "text-lg font-medium line-clamp-1",
+         i === currentSongIndex ? "text-green-600" : "text-slate-50"
+        )}
+       >
+        {song.title}
+       </h2>
+       <h3 className="text-slate-300 line-clamp-1">
+        {song.artist}
+       </h3>
+      </div>
+      <button className="text-slate-50 p-2 rounded-full hover:bg-slate-700 transition cursor-pointer">
+       <More />
+      </button>
+     </li>
+    ))}
+   </ul>
+   <div
+    style={{ backgroundImage: `url(${currentSong.image})`, backgroundSize: "cover", backgroundPosition: "center" }}
+    className={clsx(
+     "fixed bottom-0 left-0 right-0 transition-all duration-300",
+     expanded ? "h-full" : "h-18 cursor-pointer"
+    )}
+   >
+    <div className="bg-black/60 backdrop-blur-sm w-full h-full">
+     {expanded ? (
+      <div className="flex flex-col justify-between h-full max-w-4xl mx-auto p-4">
+       <div className="flex flex-col text-center">
+        <h4 className="text-slate-300 font-light uppercase">Playing from album</h4>
+        <h3 className="text-slate-50 text-lg font-medium">{currentSong.album}</h3>
+       </div>
+       <Image
+        src={currentSong.image}
+        alt={currentSong.title}
+        width={325}
+        height={325}
+        className={clsx(
+         "rounded-full border-4 border-white/70 object-cover mx-auto",
+         { "animate-spin-slow": isPlaying }
+        )}
+       />
+       <div className="flex flex-col">
+        <h1 className="text-slate-50 font-medium text-xl text-start">{currentSong.title}</h1>
+        <h2 className="text-slate-200 text-lg">{currentSong.artist}</h2>
+       </div>
+       <div className="flex flex-col w-full">
+        <input
+         type="range"
+         min="0"
+         max={duration}
+         step="0.1"
+         value={currentTime}
+         onChange={handleSeek}
+         className="w-full accent-white"
+        />
+        <div className="flex items-center justify-between">
+         <span className="text-slate-50 text-sm">{formatTime(currentTime)}</span>
+         <span className="text-slate-50 text-sm">{formatTime(duration)}</span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+       </div>
+       <div className="flex items-center justify-center gap-6">
+        <button
+         onClick={skipPrev}
+         aria-label="Previous song"
+         className="text-slate-50 p-1 rounded-full cursor-pointer hover:bg-slate-200/20"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+         <Previous className="w-14 h-14" />
+        </button>
+        <button
+         onClick={togglePlay}
+         aria-label="Toggle play"
+         className="text-slate-50 rounded-full cursor-pointer hover:text-slate-200"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+         {isPlaying ? <PauseCircle className="w-22 h-22" /> : <PlayCircle className="w-22 h-22" />}
+        </button>
+        <button
+         onClick={skipNext}
+         aria-label="Next song"
+         className="text-slate-50 p-1 rounded-full cursor-pointer hover:bg-slate-200/20"
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+         <Next className="w-14 h-14" />
+        </button>
+       </div>
+       <div className="flex items-center justify-between">
+        <button
+         onClick={shareApp}
+         aria-label="Share app"
+         className="text-slate-200 rounded-full p-2 cursor-pointer hover:bg-slate-200/20"
+        >
+         <Share />
+        </button>
+        <button
+         onClick={() => setExpanded(!expanded)}
+         aria-label="Collapse player"
+         className="text-slate-200 rounded-full p-2 cursor-pointer hover:bg-slate-200/20"
+        >
+         <Collapse />
+        </button>
+       </div>
+      </div>
+     ) : (
+      <div className="flex items-center gap-4 h-full px-2">
+       <Image
+        src={currentSong.image}
+        alt={currentSong.title}
+        width={50}
+        height={50}
+        className={clsx(
+         "rounded-full border-2 border-white object-cover",
+         { "animate-spin-slow": isPlaying }
+        )}
+       />
+       <div
+        onClick={() => !expanded && setExpanded(true)}
+        className="flex flex-col justify-center flex-1 h-full"
+       >
+        <h1 className="text-slate-50 font-medium text-lg line-clamp-1">{currentSong.title}</h1>
+        <h2 className="text-slate-200 line-clamp-1">{currentSong.artist}</h2>
+       </div>
+       <button
+        onClick={togglePlay}
+        aria-label="Toggle play"
+        className="text-slate-50 cursor-pointer"
+       >
+        {isPlaying ? <Pause className="w-12 h-12" /> : <Play className="w-12 h-12" />}
+       </button>
+      </div>
+     )}
     </div>
-  );
+   </div>
+   <audio
+    ref={audioRef}
+    src={currentSong.song}
+    onTimeUpdate={handleTimeUpdate}
+    onLoadedMetadata={handleLoadedMetadata}
+    onEnded={skipNext}
+   />
+  </main>
+ )
 }
