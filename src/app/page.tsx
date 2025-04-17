@@ -100,7 +100,7 @@ export default function Home() {
        setCurrentSongIndex(i)
        setIsPlaying(true)
       }}
-      className="flex items-center gap-4 cursor-pointer p-1.5 hover:bg-slate-800"
+      className="flex items-center gap-2 cursor-pointer p-1.5"
      >
       <Image
        src={song.image}
