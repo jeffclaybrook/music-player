@@ -135,9 +135,9 @@ export default function Home() {
      expanded ? "h-full" : "h-18 cursor-pointer"
     )}
    >
-    <div className="bg-black/60 backdrop-blur-sm w-full h-full">
+    <div className="backdrop-blur-xs w-full h-full" style={{ background: "linear-gradient(rgba(69, 71, 85, 0.71) 0%, rgba(28, 28, 31, 0.824) 100%)" }}>
      {expanded ? (
-      <div className="flex flex-col justify-between h-full max-w-4xl mx-auto p-4">
+      <div className="flex flex-col justify-between h-full max-w-5xl mx-auto p-4">
        <div className="flex flex-col text-center">
         <h4 className="text-slate-300 font-light uppercase">Playing from album</h4>
         <h3 className="text-slate-50 text-lg font-medium">{currentSong.album}</h3>
@@ -153,8 +153,8 @@ export default function Home() {
         )}
        />
        <div className="flex flex-col">
-        <h1 className="text-slate-50 font-medium text-xl text-start">{currentSong.title}</h1>
-        <h2 className="text-slate-200 text-lg">{currentSong.artist}</h2>
+        <h1 className="text-slate-50 font-medium text-xl text-start line-clamp-1">{currentSong.title}</h1>
+        <h2 className="text-slate-200 text-lg line-clamp-1">{currentSong.artist}</h2>
        </div>
        <div className="flex flex-col w-full">
         <input
@@ -207,7 +207,7 @@ export default function Home() {
          aria-label="Collapse player"
          className="text-slate-200 rounded-full p-2 cursor-pointer hover:bg-slate-200/20"
         >
-         <Collapse />
+         <Collapse className="w-10 h-10" />
         </button>
        </div>
       </div>

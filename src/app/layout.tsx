@@ -19,7 +19,7 @@ export default function RootLayout({
   children: ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-slate-950">
+    <html lang="en" className="bg-[#181818]">
       <body className={`${mulish.variable} antialiased`}>
         {children}
       </body>
