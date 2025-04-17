@@ -122,7 +122,7 @@ export default function Home() {
         {song.artist}
        </h3>
       </div>
-      <button className="text-slate-50 p-2 rounded-full hover:bg-slate-700 transition cursor-pointer">
+      <button className="text-slate-50 p-2 rounded-full transition cursor-pointer">
        <More />
       </button>
      </li>
@@ -175,7 +175,7 @@ export default function Home() {
         <button
          onClick={skipPrev}
          aria-label="Previous song"
-         className="text-slate-50 p-1 rounded-full cursor-pointer hover:bg-slate-200/20"
+         className="text-slate-50 p-1 rounded-full cursor-pointer"
         >
          <Previous className="w-14 h-14" />
         </button>
@@ -189,7 +189,7 @@ export default function Home() {
         <button
          onClick={skipNext}
          aria-label="Next song"
-         className="text-slate-50 p-1 rounded-full cursor-pointer hover:bg-slate-200/20"
+         className="text-slate-50 p-1 rounded-full cursor-pointer"
         >
          <Next className="w-14 h-14" />
         </button>
@@ -198,14 +198,14 @@ export default function Home() {
         <button
          onClick={shareApp}
          aria-label="Share app"
-         className="text-slate-200 rounded-full p-2 cursor-pointer hover:bg-slate-200/20"
+         className="text-slate-200 rounded-full p-2 cursor-pointer"
         >
          <Share />
         </button>
         <button
          onClick={() => setExpanded(!expanded)}
          aria-label="Collapse player"
-         className="text-slate-200 rounded-full p-2 cursor-pointer hover:bg-slate-200/20"
+         className="text-slate-200 rounded-full p-2 cursor-pointer"
         >
          <Collapse className="w-10 h-10" />
         </button>
