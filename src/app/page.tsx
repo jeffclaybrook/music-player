@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from "react"
 import { clsx } from "clsx"
 import { motion } from "framer-motion"
 import { songs } from "@/lib/data"
-import { Collapse, More, Next, Pause, PauseCircle, Play, PlayCircle, Previous, Share } from "@/components/icons"
+import { Collapse, Next, Pause, PauseCircle, Play, PlayCircle, Previous, Share } from "@/components/icons"
 import Image from "next/image"
 import SeekBar from "@/components/seek-bar"
+import Song from "@/components/song"
 
 const containerVariants = {
  hidden: {
@@ -98,36 +99,16 @@ export default function Home() {
     className="flex-1 overflow-y-auto py-1 pb-20"
    >
     {songs.map((song, i) => (
-     <li
+     <Song
       key={song.id}
-      onClick={() => {
-       setCurrentSongIndex(i)
+      song={song}
+      index={i}
+      currentSongIndex={currentSongIndex}
+      onSelect={(index) => {
+       setCurrentSongIndex(index)
        setIsPlaying(true)
       }}
-      className="flex items-center gap-2 cursor-pointer p-1.5"
-     >
-      <Image
-       src={song.image}
-       alt={song.title}
-       width={55}
-       height={55}
-       className="rounded"
-      />
-      <div className="flex flex-col flex-1">
-       <h2
-        className={clsx(
-         "text-lg font-medium line-clamp-1",
-         i === currentSongIndex ? "text-green-600" : "text-slate-50"
-        )}
-       >
-        {song.title}
-       </h2>
-       <h3 className="text-slate-300 line-clamp-1">{song.artist}</h3>
-      </div>
-      <button aria-label="More" className="text-slate-50 p-2 rounded-full transition cursor-pointer">
-       <More />
-      </button>
-     </li>
+     />
     ))}
    </motion.ul>
    <div
@@ -149,10 +130,7 @@ export default function Home() {
          alt={currentSong.title}
          width={325}
          height={325}
-         className={clsx(
-          "rounded-full border-4 border-white/70 object-cover mx-auto",
-          { "animate-spin-slow": isPlaying }
-         )}
+         className={`rounded-full border-4 border-white/70 object-cover mx-auto spin-slow ${!isPlaying ? "paused" : ""}`}
         />
         <div className="flex flex-col">
          <h1 className="text-slate-50 font-medium text-xl text-start line-clamp-1">{currentSong.title}</h1>
@@ -215,10 +193,7 @@ export default function Home() {
          alt={currentSong.title}
          width={50}
          height={50}
-         className={clsx(
-          "rounded-full border-2 border-white object-cover",
-          { "animate-spin-slow": isPlaying }
-         )}
+         className={`rounded-full border-2 border-white/70 object-cover spin-slow ${!isPlaying ? "paused" : ""}`}
         />
         <div
          onClick={() => !expanded && setExpanded(true)}
